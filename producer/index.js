@@ -1,24 +1,47 @@
-console.log("producer....");
+const { Kafka, logLevel } = require("kafkajs");
 
-import Kafka from "node-rdkafka";
+const kafka = new Kafka({
+  clientId: "my-app",
+  waitForLeaders: true,
+  brokers: ["localhost:9092"],
+});
 
-const stream = Kafka.Producer.createWriteStream(
-  {
-    "metadata.broker.list": "localhost:9092",
-  },
-  {},
-  { topic: "test" }
-);
+kafka.logger().setLogLevel(logLevel.WARN);
 
-function queueMessage() {
-  const success = stream.write(Buffer.from("hi"));
-  if (success) {
-    console.log("message wrote successfylly to stream");
-  } else {
-    console.log("somthing went wrong");
+const producer = kafka.producer();
+
+async function produce(topic, value) {
+  try {
+    await producer.connect();
+
+    await producer.send({
+      topic,
+      messages: [{ value }],
+    });
+
+    await producer.disconnect();
+  } catch (err) {
+    console.log(err);
   }
 }
 
-setInterval(() => {
-  queueMessage();
-}, 3000);
+const consumer = kafka.consumer({ groupId: "server1231" });
+async function consume(topic) {
+  try {
+    await consumer.connect();
+    await consumer.subscribe({ topic });
+
+    await consumer.run({
+      eachMessage: async ({ message }) => {
+        console.log({
+          value: message.value.toString(),
+        });
+      },
+    });
+  } catch (err) {
+    console.log(err);
+  }
+}
+
+produce("name", "amir");
+consume("lastName");

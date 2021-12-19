@@ -1,21 +1,49 @@
-import Kafka from "node-rdkafka";
+const { Kafka, logLevel } = require("kafkajs");
 
-const consumer = Kafka.KafkaConsumer(
-  {
-    "group.id": "kafka2",
-    "metadata.broker.list": "localhost:9092",
-  },
-  {}
-);
+const kafka = new Kafka({
+  clientId: "mytest",
+  logLevel: logLevel.INFO,
+  waitForLeaders: true,
+  brokers: ["localhost:9092"],
+});
 
-consumer.connect();
+kafka.logger().setLogLevel(logLevel.WARN);
 
-consumer
-  .on("ready", () => {
-    console.log("consumer ready!!");
-    consumer.subscribe(["test"]);
-    consumer.consume();
-  })
-  .on("data", (data) => {
-    console.log(`received message: ${data.value}`);
-  });
+const producer = kafka.producer();
+
+async function produce(topic, value) {
+  try {
+    await producer.connect();
+
+    await producer.send({
+      topic,
+      messages: [{ value }],
+    });
+
+    await producer.disconnect();
+  } catch (err) {
+    console.log(err);
+  }
+}
+
+const consumer = kafka.consumer({ groupId: "topic2" });
+
+async function consume(topic) {
+  try {
+    await consumer.connect();
+    await consumer.subscribe({ topic });
+
+    await consumer.run({
+      eachMessage: async ({ message }) => {
+        console.log({
+          value: message.value.toString(),
+        });
+      },
+    });
+  } catch (err) {
+    console.log(err);
+  }
+}
+
+consume("name");
+produce("lastName", "lol");
