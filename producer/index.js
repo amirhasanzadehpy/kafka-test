@@ -1,14 +1,18 @@
+// 1) initialze module for kafka
 const { Kafka, logLevel } = require("kafkajs");
 
+// 2) make new kafka
 const kafka = new Kafka({
   clientId: "my-app",
   waitForLeaders: true,
   brokers: ["localhost:9092"],
 });
 
+// 3) logger for kafka
 kafka.logger().setLogLevel(logLevel.WARN);
 
 const producer = kafka.producer();
+const consumer = kafka.consumer({ groupId: "kafka12134" });
 
 async function produce(topic, value) {
   try {
@@ -25,7 +29,6 @@ async function produce(topic, value) {
   }
 }
 
-const consumer = kafka.consumer({ groupId: "server1231" });
 async function consume(topic) {
   try {
     await consumer.connect();

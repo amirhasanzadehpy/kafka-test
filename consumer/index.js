@@ -1,3 +1,4 @@
+// 0.1) initilze module for server
 const { Kafka, logLevel } = require("kafkajs");
 
 const kafka = new Kafka({
@@ -6,11 +7,13 @@ const kafka = new Kafka({
   waitForLeaders: true,
   brokers: ["localhost:9092"],
 });
-
+// 0.1) kafka logger for log 
 kafka.logger().setLogLevel(logLevel.WARN);
 
 const producer = kafka.producer();
+const consumer = kafka.consumer({ groupId: "kafka212341" });
 
+// 1) this function for produce message for kafka 
 async function produce(topic, value) {
   try {
     await producer.connect();
@@ -26,8 +29,7 @@ async function produce(topic, value) {
   }
 }
 
-const consumer = kafka.consumer({ groupId: "topic2" });
-
+// 2) this function for consume message for kafka
 async function consume(topic) {
   try {
     await consumer.connect();
@@ -46,4 +48,5 @@ async function consume(topic) {
 }
 
 consume("name");
-produce("lastName", "lol");
+
+produce("lastName", "hasanzadeh");
