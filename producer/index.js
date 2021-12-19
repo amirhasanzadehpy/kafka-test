@@ -1,3 +1,4 @@
+// :)
 // 1) initialze module for kafka
 const { Kafka, logLevel } = require("kafkajs");
 
