@@ -1,52 +1,45 @@
 // 0.1) initilze module for server
-const { Kafka, logLevel } = require("kafkajs");
+const { Kafka, logLevel, CompressionTypes } = require("kafkajs");
+const ip = require("ip");
+const host = process.env.HOST_IP || ip.address();
 
 const kafka = new Kafka({
-  clientId: "mytest",
-  logLevel: logLevel.INFO,
-  waitForLeaders: true,
-  brokers: ["localhost:9092"],
+  clientId: "est",
+  logLevel: logLevel.DEBUG,
+  brokers: [`${host}:9092`],
 });
-// 0.1) kafka logger for log 
-kafka.logger().setLogLevel(logLevel.WARN);
+
+// 0.1) kafka logger for log
+kafka.logger().setLogLevel(logLevel.ERROR);
 
 const producer = kafka.producer();
-const consumer = kafka.consumer({ groupId: "kafka212341" });
+// const consumer = kafka.consumer({ groupId: "kafka212341" });
 
-// 1) this function for produce message for kafka 
-async function produce(topic, value) {
-  try {
-    await producer.connect();
+// const produceMessage = async (topic) => {
+//   try {
+//     await producer.send({
+//       topic,
+//       messages: [{ value: "horse" }],
+//     });
+//   } catch (err) {
+//     console.error;
+//   }
+// };
 
-    await producer.send({
-      topic,
-      messages: [{ value }],
-    });
+// setInterval(produceMessage, 2);
 
-    await producer.disconnect();
-  } catch (err) {
-    console.log(err);
-  }
-}
+// 1) this function for produce message for kafka
+const run = async () => {
+  await producer.connect();
 
-// 2) this function for consume message for kafka
-async function consume(topic) {
-  try {
-    await consumer.connect();
-    await consumer.subscribe({ topic });
+  await producer.send({
+    topic: "animal",
+    compression: CompressionTypes.GZIP,
+    messages: [{ value: "horse" }],
+  });
 
-    await consumer.run({
-      eachMessage: async ({ message }) => {
-        console.log({
-          value: message.value.toString(),
-        });
-      },
-    });
-  } catch (err) {
-    console.log(err);
-  }
-}
-
-consume("name");
-
-produce("lastName", "hasanzadeh");
+  console.log("send");
+  await producer.disconnect();
+};
+// setInterval(run, 22);
+run().catch(console.error);

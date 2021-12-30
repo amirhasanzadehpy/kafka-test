@@ -4,7 +4,7 @@ const { Kafka, logLevel } = require("kafkajs");
 
 // 2) make new kafka
 const kafka = new Kafka({
-  clientId: "my-app",
+  clientId: "m1",
   waitForLeaders: true,
   brokers: ["localhost:9092"],
 });
@@ -33,8 +33,9 @@ async function produce(topic, value) {
 async function consume(topic) {
   try {
     await consumer.connect();
-    await consumer.subscribe({ topic });
+    await consumer.subscribe({ topic, fromBeginning: true });
 
+    console.log("listening...");
     await consumer.run({
       eachMessage: async ({ message }) => {
         console.log({
@@ -47,5 +48,4 @@ async function consume(topic) {
   }
 }
 
-produce("name", "amir");
-consume("lastName");
+consume("animal");
